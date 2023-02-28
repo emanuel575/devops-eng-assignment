@@ -1,0 +1,3 @@
+---
+# vars file for roles/app-stack
+mysql_docker_image: "8.0"

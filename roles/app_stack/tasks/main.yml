@@ -1,0 +1,29 @@
+---
+# tasks file for roles/app-stack
+- name: Create directory for MySQL data
+  file:
+    path: /opt/mysql/data
+    state: directory
+    mode: '0755'
+
+- name: Create directory for Application files
+  file:
+    path: /opt/app-stack/dotnet
+    state: directory
+
+- name: Copy Dockerfile
+  copy:
+    src: files/application/Dockerfile
+    dest: /opt/app-stack/dotnet/Dockerfile
+
+- name: Create and configure Docker Compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/app-stack/docker-compose.yml
+
+- name: Run docker-compose stack
+  become: true
+  community.docker.docker_compose:
+    build: true
+    project_src: /opt/app-stack/
+    state: present

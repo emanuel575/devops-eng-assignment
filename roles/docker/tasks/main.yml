@@ -1,0 +1,61 @@
+---
+# tasks file for roles/docker
+
+- name: Uninstall Docker-related packages
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+    - containerd
+    - runc
+
+- name: Update apt cache and install docker prerequisites
+  become: true
+  apt:
+    update_cache: yes
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+
+- name: Download and install Docker GPG key
+  become: true
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+
+- name: Add Docker repository to apt sources
+  become: true
+  apt_repository:
+    repo: "deb [arch={{ [ansible_architecture] | map('extract', deb_architecture) | first }} signed-by=/etc/apt/trusted.gpg.d/docker.asc] https://download.docker.com/linux/ubuntu {{ lsb_codename_stdout }} stable"
+    filename: docker
+    state: present
+    update_cache: yes
+  register: apt_repo_docker
+  vars:
+    lsb_codename_stdout: "{{ ansible_lsb.codename }}"
+
+- name: Install Docker-related packages
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+
+- name: Test Docker installation
+  become: true
+  docker_container:
+    name: hello-world
+    image: hello-world
+    state: started

@@ -1,0 +1,7 @@
+---
+- name: Run playbook to setup docker and docker-compose enviroment
+  hosts: all
+  become: true
+  roles:
+    - roles/docker
+    - roles/app_stack
